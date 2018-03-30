@@ -1,0 +1,17 @@
+{
+  "name": "findpptvids",
+  "version": "1.0.0",
+  "description": "Node script to find out which slides in a PowerPoint presentation contain videos",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "PowerPoint"
+  ],
+  "author": "Alexander Kennedy",
+  "license": "ISC",
+  "dependencies": {
+    "decompress": "^4.2.0"
+  }
+}

@@ -1,0 +1,5 @@
+# ignore test presentation
+testPres.pptx
+
+# ignore node modules
+node_modules/
