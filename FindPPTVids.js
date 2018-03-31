@@ -1,60 +1,53 @@
 const fs = require('fs');
 const decompress = require('decompress');
 
-// in-progress attempt to unzip file
-// const zlib = require('zlib');
-
-
-// zlib.gunzip(PPTFolder, function(err, result) {
-//     if(err) return console.error(err);
-
-//     console.log(result);
-// });
-
-/////////////////////////
-
 var target = process.argv[2]
 var copy = target.split(".").shift() + "_copy.zip";
-
-fs.copyFile(target, copy, (err) => {
-  if (err) throw err;
-  console.log(target, " was copied to ", copy);
-});
-
-var PPTFolder = decompress(copy, 'dist').then(files => {
-    console.log('done!');
-});
+var PPTFolder;
+var FindPPTVidsDirectory;
 
 /////////////////////////
 
-// change this assignment once I'm able to unzip files
-// var PPTFolder = process.argv[2]
-// var PPTFolder = copy
+// work through this tutorial before trying to work in a folder besides the project's root folder: http://www.monitis.com/blog/6-node-js-recipes-working-with-the-file-system/
 
+// console.log(copy);
 
+// // uncomment after getting extraneous files to be created here
+// fs.mkdir("FindPPTVidsDirectory", function(err) {
+// 	if (err) {
+// 		console.log("failed to create FindPPTVidsDirectory")
+// 	} else {
+// 		console.log("successfully created FindPPTVidsDirectory");
+// 	}
+// });
+
+// console.log("FindPPTVidsDirectory: ", FindPPTVidsDirectory);
+
+/////////////////////////
+
+// Make zip file
+fs.copyFile(target, copy, (err) => {
+	if (err) throw err;
+	console.log(target, " was copied to ", copy);
+
+	// Unzip file
+	decompress(copy, copy.split('.').shift()).then((files, err) => {
+		// check to make sure decompress module has this error reporting capability
+		if (err) throw err;
+		PPTFolder = copy.split('.').shift();
+		console.log(copy, " was unzipped to create ", PPTFolder);
+		locateVideos(PPTFolder);
+	});
+
+});
 
 function locateVideos(PPTFolder) {
-
 	var slidesFolder = `${PPTFolder}/ppt/slides`;
-	console.log("-------------------");
-	console.log("in ", PPTFolder.split('/').pop(), "...");
+	console.log("======================");
 
 	fs.readdir(slidesFolder, (err, entries) => {
-		// console.log(entries);
 
 		entries.forEach((file) => {
-
-
-				// // fs.readFile( '\'' + file + '\'', function (err, data) {
-				// fs.readFile(file, function (err, data) {
-				// // fs.readFile(`file`, function (err, data) {
-				// // fs.readFile('/slide1.xml', function (err, data) {
-				// 	if (err) throw err;
-				// console.log(data.toString('utf8'));
-				// });
-
-
-			// console.log(file);
 
 			if (file.split('.').pop() == 'xml') {
 
@@ -65,17 +58,13 @@ function locateVideos(PPTFolder) {
 
 					var fileContents = data.toString('utf8');
 
-
-					// if (fileContents.indexOf('\<p:video\>') >= 0) {
 					if (fileContents.indexOf('<p:video>') >= 0) {
-						// console.log("--------------");
-						// console.log(data.toString('utf8'));
-
 						console.log(file.split('.').shift(), "contains a video");
+					} else {
+						console.log("-------------------------------", file.split('.').shift(), "- no video")
 					}
 
 					// console.log(fileContents);
-					// console.log("===============");
 				});
 			}
 
@@ -84,22 +73,19 @@ function locateVideos(PPTFolder) {
 	});
 }
 
+// function buildTree(startPath) {
+// 	fs.readdir(startPath, (err, entries) => {
+// 		console.log(entries);
+// 		entries.forEach((file) => {
+// 			const path = `${startPath}/${file}`;
 
+// 			// console.log(path);
 
-function buildTree(startPath) {
-	fs.readdir(startPath, (err, entries) => {
-		console.log(entries);
-		entries.forEach((file) => {
-			const path = `${startPath}/${file}`;
+// 			if (fs.lstatSync(path).isDirectory()) {
+// 				buildTree(path);
+// 			}
+// 		})
+// 	});
+// }
 
-			// console.log(path);
-
-			if (fs.lstatSync(path).isDirectory()) {
-				buildTree(path);
-			}
-		})
-	});
-}
-
-// buildTree(PPTFolder);
-locateVideos(PPTFolder);
+// // buildTree(PPTFolder);
