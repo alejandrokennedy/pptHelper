@@ -1,3 +1,4 @@
+
 const fs = require('fs');
 const decompress = require('decompress');
 
@@ -30,74 +31,114 @@ var pptHelperDir = "/pptHelperDir";
 // fs.copyFile(target, pptHelperDir + "/" + copy, (err) => {
 fs.copyFile(target, copy, (err) => {
 	if (err) throw err;
-	console.log(target, " was copied to ", copy);
+	console.log("======================");
+	console.log(target, "\n ...was copied to... \n", copy);
 
 	// Unzip file
 	decompress(copy, copy.split('.').shift()).then((files, err) => {
 		// check to make sure decompress module has this error reporting capability
 		if (err) throw err;
 		PPTFolder = copy.split('.').shift();
-		console.log(copy, " was unzipped to create ", PPTFolder);
+		console.log("\n", copy, "\n ...was unzipped to create... \n", PPTFolder);
 		locateVideos(PPTFolder);
+
+
+		// var promise = locateVideos(PPTFolder);
+
+		// promise.then(function(data) {
+		// 	console.log(data);
+		// });
+
+
+
 	});
 
 });
 
+
+
+
 function locateVideos(PPTFolder) {
-	var slidesFolder = `${PPTFolder}/ppt/slides`;
-	var resultsList = [];
-	console.log("======================");
+	// return new Promise(function(resolve, reject) {
 
-	fs.readdir(slidesFolder, (err, entries) => {
+		var slidesFolder = `${PPTFolder}/ppt/slides`;
+		var resultsList = [];
+		console.log("======================");
 
-		entries.forEach((file) => {
+		fs.readdir(slidesFolder, (err, entries) => {
 
-			if (file.split('.').pop() == 'xml') {
+			entries.forEach((file) => {
 
-				var xmlfile = `${PPTFolder}/ppt/slides/${file}`
+				if (file.split('.').pop() === 'xml') {
 
-				fs.readFile(xmlfile, function (err, data) {
-					if (err) throw err;
+					var xmlfile = `${PPTFolder}/ppt/slides/${file}`
 
-					var fileContents = data.toString('utf8');	
-					var currentSlide = file.split('.').shift().split("slide").pop();
+					fs.readFile(xmlfile, function (err, data) {
+						if (err) throw err;
 
-					if (fileContents.indexOf('<p:video>') >= 0) {
-						// old-school console log below
-						// console.log(file.split('.').shift(), "- contains a video");
+						var fileContents = data.toString('utf8');	
+						var currentSlide = file.split('.').shift().split("slide").pop();
 
-						resultsList.push({
-							"slide": parseInt(currentSlide),
-							"hasVideo": true
+						if (fileContents.indexOf('<p:video>') >= 0) {
+							// old-school console log below
+							// console.log(file.split('.').shift(), "- contains a video");
+
+							resultsList.push({
+								"slide": parseInt(currentSlide),
+								"hasVideo": true
 							});
 
-						console.log(resultsList.sort(function(a, b) {
-							if (a.slide > b.slide) {
-								return 1;
-							} else if (a.slide < b.slide) {
-								return -1;
-							} else { return 0; }
-						}));
+						} else {
+							// old-school console logs below
+							// console.log(file.split('.').shift());
+							// console.log("--------------");
 
-					} else {
-						// old-school console logs below
-						// console.log(file.split('.').shift());
-						// console.log("--------------");
-
-						resultsList.push({
-							"slide": parseInt(currentSlide),
-							"hasVideo": false
+							resultsList.push({
+								"slide": parseInt(currentSlide),
+								"hasVideo": false
 							});
-					}
 
-				});
+						}
+
+					}); // fs.readFile (for xmlfile) callback
+
+				} // "if xml" callback
+
+			}); // entries.forEach callback
+
+			function logResults () {
+
+				resultsList.sort(function(a, b) {
+				 return b.hasVideo - a.hasVideo || a.slide - b.slide;					
+				})
+
+				console.log(resultsList);
 			}
 
-		});
+			setTimeout(logResults, 4000);
 
-	});
+		}); // fs.readdir callback
 
-}
+	// }); // promise callback
+
+} // locateVideos function callback
+
+
+/////////////////
+
+		// console.log(resultsList);
+
+		// console.log(resultsList.sort(function(a, b) {
+		// 	if (a.slide > b.slide) {
+		// 		return 1;
+		// 	} else if (a.slide < b.slide) {
+		// 		return -1;
+		// 	} else { return 0; }
+		// }));
+
+
+
+/////////////
 
 function buildTree(startPath) {
 	fs.readdir(startPath, (err, entries) => {
