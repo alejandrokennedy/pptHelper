@@ -79,23 +79,28 @@ function locateVideos(PPTFolder) {
 						var fileContents = data.toString('utf8');	
 						var currentSlide = file.split('.').shift().split("slide").pop();
 
-						if (fileContents.indexOf('<p:video>') >= 0) {
-							// old-school console log below
-							// console.log(file.split('.').shift(), "- contains a video");
+						if (fileContents.indexOf('<p:video>') >= 0 && fileContents.indexOf('repeatCount="indefinite"') >= 0) {
 
 							resultsList.push({
 								"slide": parseInt(currentSlide),
-								"hasVideo": true
+								"hasVideo": true,
+								"repeatCountIndefinite": true
+							});
+
+						} else if (fileContents.indexOf('<p:video>') >= 0) {
+
+							resultsList.push({
+								"slide": parseInt(currentSlide),
+								"hasVideo": true,
+								"repeatCountIndefinite": false
 							});
 
 						} else {
-							// old-school console logs below
-							// console.log(file.split('.').shift());
-							// console.log("--------------");
 
 							resultsList.push({
 								"slide": parseInt(currentSlide),
-								"hasVideo": false
+								"hasVideo": false,
+								"repeatCountIndefinite": false
 							});
 
 						}
@@ -109,13 +114,13 @@ function locateVideos(PPTFolder) {
 			function logResults () {
 
 				resultsList.sort(function(a, b) {
-				 return b.hasVideo - a.hasVideo || a.slide - b.slide;					
+				 return b.hasVideo - a.hasVideo || a.repeatCountIndefinite - b.repeatCountIndefinite || a.slide - b.slide;					
 				})
 
 				console.log(resultsList);
 			}
 
-			setTimeout(logResults, 4000);
+			setTimeout(logResults, 6000);
 
 		}); // fs.readdir callback
 
