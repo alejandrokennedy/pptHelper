@@ -22,13 +22,13 @@ Clone or download pptHelper using the "Clone or download" button on the [project
 
 2. Type "node pptHelper.js [path-and-name-of-ppt-file.pptx]", replacing [path-and-name-of-ppt-file.pptx] with the path and name of your PowerPoint file. For example:
 ```
-	$ node pptHelper.js /Users/JohnDoe/Documents/Presentation.pptx
+$ node pptHelper.js /Users/JohnDoe/Documents/Presentation.pptx
 ```
 3. Read the resulting console logs. Slides that have videos in them will read:
 ```
 "hasVideo: true"
 ```
-   Videos that are not set to repeat (play only once, and as such are probably not gifs or animated logos) will read
+Videos that are not set to repeat (play only once, and as such are probably not gifs or animated logos) will read
 ```
 repeatCountIndefinite: false".
 ```
