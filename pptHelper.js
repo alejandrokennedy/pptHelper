@@ -79,12 +79,13 @@ function locateVideos(PPTFolder) {
 						var fileContents = data.toString('utf8');	
 						var currentSlide = file.split('.').shift().split("slide").pop();
 
+						// find best way to add multiple properties (e.g. hasAudioFile) without making a collossal if/else statement
 						if (fileContents.indexOf('<p:video>') >= 0 && fileContents.indexOf('repeatCount="indefinite"') >= 0) {
 
 							resultsList.push({
 								"slide": parseInt(currentSlide),
 								"hasVideo": true,
-								"repeatCountIndefinite": true
+								"hasVidPlusRepeatCountIndefinite": true
 							});
 
 						} else if (fileContents.indexOf('<p:video>') >= 0) {
@@ -92,7 +93,7 @@ function locateVideos(PPTFolder) {
 							resultsList.push({
 								"slide": parseInt(currentSlide),
 								"hasVideo": true,
-								"repeatCountIndefinite": false
+								"hasVidPlusRepeatCountIndefinite": false
 							});
 
 						} else {
@@ -100,7 +101,7 @@ function locateVideos(PPTFolder) {
 							resultsList.push({
 								"slide": parseInt(currentSlide),
 								"hasVideo": false,
-								"repeatCountIndefinite": false
+								"hasVidPlusRepeatCountIndefinite": false
 							});
 
 						}
@@ -114,7 +115,7 @@ function locateVideos(PPTFolder) {
 			function logResults () {
 
 				resultsList.sort(function(a, b) {
-				 return b.hasVideo - a.hasVideo || a.repeatCountIndefinite - b.repeatCountIndefinite || a.slide - b.slide;					
+				 return b.hasVideo - a.hasVideo || a.hasVidPlusRepeatCountIndefinite - b.hasVidPlusRepeatCountIndefinite || a.slide - b.slide;					
 				})
 
 				console.log(resultsList);
