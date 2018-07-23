@@ -42,30 +42,56 @@ fs.copyFile(target, copy, (err) => {
 		console.log("\n", copy, "\n ...was unzipped to create... \n", PPTFolder);
 		locateVideos(PPTFolder);
 
-
-		// var promise = locateVideos(PPTFolder);
-
-		// promise.then(function(data) {
-		// 	console.log(data);
-		// });
-
-
-
 	});
 
 });
 
-
-
-
 function locateVideos(PPTFolder) {
-	// return new Promise(function(resolve, reject) {
 
-		var slidesFolder = `${PPTFolder}/ppt/slides`;
-		var resultsList = [];
+		var slidesRelsFolder = `${PPTFolder}/ppt/slides/_rels`;
+
 		console.log("======================");
 
-		fs.readdir(slidesFolder, (err, entries) => {
+		fs.readdir(slidesRelsFolder, (err, entries) => {
+
+			var resultsList = entries.map(x => {
+
+				var obj = {};
+
+				// add slide number property to object
+				obj.slide = parseInt(x.split(".").shift().split("slide").pop());
+
+				var relsFile = `${PPTFolder}/ppt/slides/_rels/${x}`;
+
+				// read relsFile contents and stringify the result
+				var fileGuts = fs.readFileSync(relsFile, 'utf8', (err, data) => {
+					if (err) throw err;
+					return data;
+				});
+
+				// add hasVideo property to object
+				if (fileGuts.indexOf('relationships/video"') >= 0) {
+					obj.hasVideo = true
+				} else {
+					obj.hasVideo = false
+				}
+
+				// // file contents property
+				// obj.fileContents = fileGuts;
+
+				return obj;
+
+			});
+
+			console.log(resultsList);
+
+			var onlyResultsWVids = resultsList.filter(obj => obj.hasVideo === true);
+
+			// console.log(onlyResultsWVids);
+
+			console.log(onlyResultsWVids.length + " slides contain videos");
+
+/////////////////////
 
 			entries.forEach((file) => {
 
@@ -112,6 +138,8 @@ function locateVideos(PPTFolder) {
 
 			}); // entries.forEach callback
 
+////////////
+
 			function logResults () {
 
 				resultsList.sort(function(a, b) {
@@ -121,11 +149,9 @@ function locateVideos(PPTFolder) {
 				console.log(resultsList);
 			}
 
-			setTimeout(logResults, 6000);
+			// setTimeout(logResults, 6000);
 
 		}); // fs.readdir callback
-
-	// }); // promise callback
 
 } // locateVideos function callback
 
