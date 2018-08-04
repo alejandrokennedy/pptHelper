@@ -12,6 +12,9 @@
   "author": "Alexander Kennedy",
   "license": "ISC",
   "dependencies": {
-    "decompress": "^4.2.0"
+    "decompress": "^4.2.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "npm": "^6.2.0",
+    "xml-js": "^1.6.7"
   }
 }
