@@ -125,138 +125,74 @@ function locateVideos(PPTFolder) {
 			// filtered results list: an array of objects, with slides that don't contain videos taken out
 			var onlyResultsWVids = resultsList.filter(obj => obj.hasVideo === true);
 
-			var arrayWithVidInfo = onlyResultsWVids.map(x => {
-
-				var vidFile = path.join(slidesRelsFolder, "..", x.vidLocation);
-
 /////////////////////////////
 
-				// WHY DOESN'T MY FIRST ONE WORK?
+			// var meanMaxVolPromise = new Promise(function(resolve, reject) {
 
-				// getFfmpegData(vidFile, function(meanVolume) {
-				//   if(meanVolume){
-				//   	x.meanVolume = getFfmpegData(vidFile);
-				//     console.log('Mean Volume Exists');
-				//   }else{
-				//   	x.meanVolume = null;
-				//     console.log('No Mean Volume');
-				//   }
-				// });
+				var arrayWithVidInfo = onlyResultsWVids.map(x => {
 
-				function getFfmpegData(file) {
-					var meanVolume = "placeholder";
-					new Ffmpeg({ source: file })
-						.withAudioFilter('volumedetect')
-						.addOption('-f', 'null')
-						.addOption('-t', '500')
-						.on('error', function(err, stdout, stderr) {
-    					console.log('An error occurred: ' + err.message);
-  						})
-						.on('start', function(ffmpegCommand) {
-							// console.log('output the ffmpeg command', ffmpegCommand);
-						})
-						.on('end', function(stdout, stderr) {
+					var vidFile = path.join(slidesRelsFolder, "..", x.vidLocation);
 
-							let meanVolumeRegex = stderr.match(/mean_volume:\s+(-?\d+(\.\d+)?)/);
+					function getMeanVolume(streamUrl, callback) {
+						new Ffmpeg({ source: streamUrl })
+					  	.withAudioFilter('volumedetect')
+							.addOption('-f', 'null')
+							.addOption('-t', '500')
+							.on('error', function(err, stdout, stderr) {
+		  					console.log('An error occurred: ' + err.message);
+								})
+							.on('start', function(ffmpegCommand) {
+								// console.log('\n the following ffmpeg command is being run:\n', ffmpegCommand, "\n");
+							})
+							.on('end', function(stdout, stderr) {
+						   
+						    let meanVolumeRegex = stderr.match(/mean_volume:\s+(-?\d+(\.\d+)?)/);
+						    let maxVolumeRegex = stderr.match(/max_volume:\s+(-?\d+(\.\d+)?)/);
+						   
+						    // return the mean volume
+						    if(meanVolumeRegex && maxVolumeRegex){
+						      let meanVolume = parseFloat(meanVolumeRegex[1]);
+						      let maxVolume = parseFloat(maxVolumeRegex[1]);
+						      return callback(meanVolume, maxVolume);
+						    } else {
+						    	// console.log("\nmeanVolumeRegex does not exist... something funny might be up. Callback will be set to false\n")
+						      return callback(false);
+						    }
+					 		})
+						 	.saveToFile('/dev/null');
+						}
 
-							console.log(meanVolumeRegex[1]);
+					// const VOLUME_THRESHOLD = -50; // volume threshold
+					const STREAM_URL = path.join(slidesRelsFolder, "..", x.vidLocation);
+					// console.log(STREAM_URL);
 
-							if(meanVolumeRegex) {
-      					// let meanVolume = parseFloat(meanVolumeRegex[1]);
-      					meanVolume = parseFloat(meanVolumeRegex[1]);
-      					// console.log("meanVolume is: ", meanVolume);
-      					// return callback(meanVolume);
-      					// return meanVolume;
-  						}
-   
-    					else {
-      					meanVolume = null;
-      					// return callback(false);
-      					// return null;
-      					// console.log("meanVolume is: ", meanVolume);
-    					}
-						})
-						.saveToFile('/dev/null');
-					
-					return meanVolume;
+						getMeanVolume(STREAM_URL, function(meanVolume, maxVolume) {
+							x.meanVolume = meanVolume;
+							x.maxVolume = maxVolume;
+						  console.log(x);
+						});
 
-					// fix this... how to return properly?
-					// return meanVolume[0];
-				}
+	/////////////////////////////
 
-				// getFfmpegData(vidFile);
+					// log filtered results list using timeout (doesn't really work, unless timeout is super long)
+					// setTimeout(function() {
+					// 	console.log(x);
+					// }, 25000);
 
-				// setTimeout(function() {
-				// 	x.meanVolume = getFfmpegData(vidFile);
-				// 	console.log("timeout done")
-				// 	console.log(x);
-				// }, 5000);
+	/////////////////////////////
 
-///////////////////////////// WORKING ONE BELOW:
+				}); // arrayWithVidInfo callback
 
-				// const VOLUME_THRESHOLD = -50; // volume threshold
-				const STREAM_URL = path.join(slidesRelsFolder, "..", x.vidLocation);
-				// console.log(STREAM_URL);
+			// }); // meanMaxVolPromise callback
 
-				getMeanVolume(STREAM_URL, function(meanVolume, maxVolume){
+			// meanMaxVolPromise.then(response => console.log(response));
+			// meanMaxVolPromise.then(console.log("hey! Promise fulfilled"));
 
-					x.meanVolume = meanVolume;
-					x.maxVolume = maxVolume;
-				  console.log(x);
+	/////////////////////////////
 
-					//////////
 
-				  // if(meanVolume) {
-				  //   console.log("Mean Volume Exists! Look: ", meanVolume);
-				  //   x.meanVolume = meanVolume;
-				  //   console.log(x);
-				  // }else{
-				  //   console.log("\nMean Volume Doesn't exist :(\n");
-				  // }
 
-					//////////
-
-				});
-
-				function getMeanVolume(streamUrl, callback){
-				 new Ffmpeg({ source: streamUrl })
-				  	.withAudioFilter('volumedetect')
-						.addOption('-f', 'null')
-						.addOption('-t', '500')
-						.on('error', function(err, stdout, stderr) {
-    					console.log('An error occurred: ' + err.message);
-  						})
-						.on('start', function(ffmpegCommand) {
-							// console.log('\n the following ffmpeg command is being run:\n', ffmpegCommand, "\n");
-						})
-						.on('end', function(stdout, stderr) {
-					   
-					    let meanVolumeRegex = stderr.match(/mean_volume:\s+(-?\d+(\.\d+)?)/);
-					    let maxVolumeRegex = stderr.match(/max_volume:\s+(-?\d+(\.\d+)?)/);
-					   
-					    // return the mean volume
-					    if(meanVolumeRegex && maxVolumeRegex){
-					      let meanVolume = parseFloat(meanVolumeRegex[1]);
-					      let maxVolume = parseFloat(maxVolumeRegex[1]);
-					      return callback(meanVolume, maxVolume);
-					    } else {
-					    	// console.log("\nmeanVolumeRegex does not exist... something funny might be up. Callback will be set to false\n")
-					      return callback(false);
-					    }
-				 		})
-				 	.saveToFile('/dev/null');
-				}
-
-/////////////////////////////
-
-				// log filtered results list using timeout (doesn't really work, unless timeout is super long)
-				// setTimeout(function() {
-				// 	console.log(x);
-				// }, 25000);
-
-/////////////////////////////
-
-			}); // arrayWithVidInfo callback
+	/////////////////////////////
 
 			// figure out asynchronous coding
 			// fix for singular
