@@ -125,72 +125,50 @@ function locateVideos(PPTFolder) {
 			// filtered results list: an array of objects, with slides that don't contain videos taken out
 			var onlyResultsWVids = resultsList.filter(obj => obj.hasVideo === true);
 
-/////////////////////////////
+			var arrayWithVidInfo = onlyResultsWVids.map(x => {
 
-			// var meanMaxVolPromise = new Promise(function(resolve, reject) {
+				var vidFile = path.join(slidesRelsFolder, "..", x.vidLocation);
 
-				var arrayWithVidInfo = onlyResultsWVids.map(x => {
-
-					var vidFile = path.join(slidesRelsFolder, "..", x.vidLocation);
-
-					function getMeanVolume(streamUrl, callback) {
-						new Ffmpeg({ source: streamUrl })
-					  	.withAudioFilter('volumedetect')
-							.addOption('-f', 'null')
-							.addOption('-t', '500')
-							.on('error', function(err, stdout, stderr) {
-		  					console.log('An error occurred: ' + err.message);
-								})
-							.on('start', function(ffmpegCommand) {
-								// console.log('\n the following ffmpeg command is being run:\n', ffmpegCommand, "\n");
+				function getMeanVolume(streamUrl, callback) {
+					new Ffmpeg({ source: streamUrl })
+				  	.withAudioFilter('volumedetect')
+						.addOption('-f', 'null')
+						.addOption('-t', '500')
+						.on('error', function(err, stdout, stderr) {
+	  					console.log('An error occurred: ' + err.message);
 							})
-							.on('end', function(stdout, stderr) {
-						   
-						    let meanVolumeRegex = stderr.match(/mean_volume:\s+(-?\d+(\.\d+)?)/);
-						    let maxVolumeRegex = stderr.match(/max_volume:\s+(-?\d+(\.\d+)?)/);
-						   
-						    // return the mean volume
-						    if(meanVolumeRegex && maxVolumeRegex){
-						      let meanVolume = parseFloat(meanVolumeRegex[1]);
-						      let maxVolume = parseFloat(maxVolumeRegex[1]);
-						      return callback(meanVolume, maxVolume);
-						    } else {
-						    	// console.log("\nmeanVolumeRegex does not exist... something funny might be up. Callback will be set to false\n")
-						      return callback(false);
-						    }
-					 		})
-						 	.saveToFile('/dev/null');
-						}
+						.on('start', function(ffmpegCommand) {
+							// console.log('\n the following ffmpeg command is being run:\n', ffmpegCommand, "\n");
+						})
+						.on('end', function(stdout, stderr) {
+					   
+					    let meanVolumeRegex = stderr.match(/mean_volume:\s+(-?\d+(\.\d+)?)/);
+					    let maxVolumeRegex = stderr.match(/max_volume:\s+(-?\d+(\.\d+)?)/);
+					   
+					    // return the mean volume
+					    if(meanVolumeRegex && maxVolumeRegex){
+					      let meanVolume = parseFloat(meanVolumeRegex[1]);
+					      let maxVolume = parseFloat(maxVolumeRegex[1]);
+					      return callback(meanVolume, maxVolume);
+					    } else {
+					    	// console.log("\nmeanVolumeRegex does not exist... something funny might be up. Callback will be set to false\n")
+					      return callback(false);
+					    }
+				 		})
+					 	.saveToFile('/dev/null');
+				}
 
-					// const VOLUME_THRESHOLD = -50; // volume threshold
-					const STREAM_URL = path.join(slidesRelsFolder, "..", x.vidLocation);
-					// console.log(STREAM_URL);
+				// const VOLUME_THRESHOLD = -50; // volume threshold
+				const STREAM_URL = path.join(slidesRelsFolder, "..", x.vidLocation);
+				// console.log(STREAM_URL);
 
-						getMeanVolume(STREAM_URL, function(meanVolume, maxVolume) {
-							x.meanVolume = meanVolume;
-							x.maxVolume = maxVolume;
-						  console.log(x);
-						});
+				getMeanVolume(STREAM_URL, function(meanVolume, maxVolume) {
+					x.meanVolume = meanVolume;
+					x.maxVolume = maxVolume;
+				  console.log(x);
+				});
 
-	/////////////////////////////
-
-					// log filtered results list using timeout (doesn't really work, unless timeout is super long)
-					// setTimeout(function() {
-					// 	console.log(x);
-					// }, 25000);
-
-	/////////////////////////////
-
-				}); // arrayWithVidInfo callback
-
-			// }); // meanMaxVolPromise callback
-
-			// meanMaxVolPromise.then(response => console.log(response));
-			// meanMaxVolPromise.then(console.log("hey! Promise fulfilled"));
-
-	/////////////////////////////
-
-
+			}); // arrayWithVidInfo callback
 
 	/////////////////////////////
 
@@ -199,13 +177,6 @@ function locateVideos(PPTFolder) {
 			// Log how many slides have videos
 			// console.log("\n", arrayWithVidInfo.length + " slides contain videos:", "\n");
 			
-
-			// I think this doesn't work...
-			// setTimeout(function() {
-			// console.log(arrayWithVidInfo);
-			// }, 20000);
-
-
 ///////////////////////////// below is an old method of logging sorted results...
 
 			// function logResults () {
