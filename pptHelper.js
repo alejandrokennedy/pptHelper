@@ -7,6 +7,9 @@ const util = require('util');
 const path = require('path');
 const Ffmpeg = require('fluent-ffmpeg');
 
+// remove once done playing
+const fetch = require('node-fetch');
+
 var target = process.argv[2];
 var copy = target.split(".").shift() + "_copy.zip";
 var PPTFolder;
@@ -124,13 +127,152 @@ function locateVideos(PPTFolder) {
 
 			// filtered results list: an array of objects, with slides that don't contain videos taken out
 			var onlyResultsWVids = resultsList.filter(obj => obj.hasVideo === true);
+			// console.log(onlyResultsWVids);
 
-			var arrayWithVidInfo = onlyResultsWVids.map(x => {
+////////////////////////// working on promises with array
 
-				var vidFile = path.join(slidesRelsFolder, "..", x.vidLocation);
+			// let names = ['iliakan', 'remy', 'jeresig'];
+    
+	  //   let requests = names.map(name => name + " was here");
+	    
+	  //   Promise.all(requests)
+	  //     .then(responses => {
+	  //         console.log(responses);
+	  //       });
 
-				function getMeanVolume(streamUrl, callback) {
-					new Ffmpeg({ source: streamUrl })
+
+	  ///////////////
+
+			// let experimentalArray = onlyResultsWVids.map(x => {
+
+			// 	function trying (x) {
+
+			// 		return new Promise((resolve, reject) => {
+			// 			x.test = 'test';
+			// 			resolve(x);
+			// 		});
+			// 	}
+
+			// 	trying(x)
+			// 		// .then((x) => return x)
+			// 		.then((x) => console.log("success! \n", x))
+			// 		.catch((err) => console.error(err));
+
+			// });
+
+			// Promise.all(experimentalArray)
+			// 	.then(responses => {
+			// 		// console.log(responses);
+			// 		console.log('this string');
+			// 	});
+
+	  ///////////////
+
+	  // function transformAndDeliverArray (array) {
+	  // 	return new Promise((resolve, reject) => {
+
+	  // 		// let newArray = array.map(array => {
+	  // 			setTimeout(() => {
+			//   		array.map(array => {
+			//   			array.test = 'super good test'
+			//   			array.test2 = 'super good test2'
+			//   		});
+	  // 				console.log("wait is over")
+	  // 			}, 2000)
+
+	  // 		// resolve(newArray);
+	  // 		resolve(array);
+
+	  // 	});
+	  // }
+
+	  // transformAndDeliverArray(onlyResultsWVids)
+	  // 	.then((result) => console.log(result));
+
+//////////////////////////
+
+	  // function transformAndDeliverArray (array) {
+	  // 	return new Promise((resolve, reject) => {
+
+	  // 		// let newArray = array.map(array => {
+	  // 			setTimeout(() => {
+			//   		array.map(array => {
+			//   			array.test = 'super good test'
+			//   			array.test2 = 'super good test2'
+			//   		});
+	  // 				console.log("2 second wait is over")
+	  // 			}, 2000)
+
+	  // 		// resolve(newArray);
+	  // 		resolve(array);
+
+	  // 	});
+	  // }
+
+	  // transformAndDeliverArray(onlyResultsWVids)
+	  // 	.then((result) => console.log(result));
+	  // 	// .then((result) => {
+	  // 	// 	result.map(array => {
+	  // 	// 		array.test = 'super good test'
+	  // 	// 		array.test2 = 'super good test2'
+	  // 	// 	})
+	  // 	// })
+
+////////////////////////// async/await playground
+
+		// let apiUrl = "https://gist.githubusercontent.com/mbostock/ddc6d50c313ebe6edb45519f43358c6c/raw/c443ed14c34c5c1b544949a546dd9d0acd05bad3/temperatures.csv";
+
+		// function passPromise(thingHere) {
+		// 	// console.log("\n \n check this: \n");
+		// 	// console.log(thingHere);
+		// 	return new Promise((resolve, reject) => {
+		// 		resolve(thingHere);
+
+		// 	})
+		// }
+
+		// fetchApi()
+		// 	.then(results => console.log(results))
+		// 	// .catch(err => console.error("\n Yo! This is an ERROR, boiiii !!! \n"));
+		// 	.catch(err => console.error(err));
+
+		// async function fetchApi() {
+		// 	let fetchingApi = await fetch(apiUrl);
+		// 	// let consoleLogPromise = await passPromise(fetchingApi);
+		// 	let consoleLogPromise = await Promise.resolve(fetchingApi);
+		// 	let typeOfThing = await typeof consoleLogPromise;
+		// 	// let typeOfThing = await console.log("\n typeOfThing is a(n): \n", typeof consoleLogPromise);
+		// 	return {
+		// 		originalObject: consoleLogPromise,
+		// 		theTypeIs: typeOfThing
+		// 	}
+
+
+
+			// fetch(apiUrl)
+			// 	.then(response => {
+			// 		console.log(response)
+			// 		return new Promise((resolve, reject) => {
+			// 			resolve(response);
+			// 		})
+			// 	})
+			// 	.then(newResponse => console.log("\n newResponse is a(n): \n", typeof newResponse));
+			// 	.catch((err) => console.error("\n Yo! This is an ERROR, boiiii !!! \n"));
+		// }
+
+		// fetchApi();
+
+//////////////////////////
+
+			var onlyResultsWVidsPromises = onlyResultsWVids.map(x => {
+				// use this concept somehow: 
+				// const VOLUME_THRESHOLD = -50; // volume threshold
+
+				let vidFile = path.join(slidesRelsFolder, "..", x.vidLocation);
+				var promiseResolve = 'placeholder';
+
+				function getMeanVolume(videoFile, callback) {
+					new Ffmpeg({ source: videoFile })
 				  	.withAudioFilter('volumedetect')
 						.addOption('-f', 'null')
 						.addOption('-t', '500')
@@ -145,30 +287,59 @@ function locateVideos(PPTFolder) {
 					    let meanVolumeRegex = stderr.match(/mean_volume:\s+(-?\d+(\.\d+)?)/);
 					    let maxVolumeRegex = stderr.match(/max_volume:\s+(-?\d+(\.\d+)?)/);
 					   
-					    // return the mean volume
+					    // return the mean and max volumes as arguments for callback function
 					    if(meanVolumeRegex && maxVolumeRegex){
 					      let meanVolume = parseFloat(meanVolumeRegex[1]);
 					      let maxVolume = parseFloat(maxVolumeRegex[1]);
 					      return callback(meanVolume, maxVolume);
 					    } else {
-					    	// console.log("\nmeanVolumeRegex does not exist... something funny might be up. Callback will be set to false\n")
+					    	// console.log("\nmeanVolumeRegex and maxVolumeRegex do not exist. Callback will be set to false\n")
 					      return callback(false);
 					    }
 				 		})
 					 	.saveToFile('/dev/null');
+
+				 	return new Promise((resolve, reject) => {
+				 			resolve(promiseResolve);
+				 	});
 				}
 
-				// const VOLUME_THRESHOLD = -50; // volume threshold
-				const STREAM_URL = path.join(slidesRelsFolder, "..", x.vidLocation);
-				// console.log(STREAM_URL);
+				let arrayWithAudioInfo = getMeanVolume(vidFile, function(meanVolume, maxVolume) {
 
-				getMeanVolume(STREAM_URL, function(meanVolume, maxVolume) {
 					x.meanVolume = meanVolume;
 					x.maxVolume = maxVolume;
-				  console.log(x);
+				  // console.log(x);
+				  promiseResolve = Promise.resolve(x);
+				  console.log(promiseResolve);
+
 				});
 
-			}); // arrayWithVidInfo callback
+				  // console.log(Promise.resolve(x));
+				  
+			  // console.log(arrayWithAudioInfo);
+			  arrayWithAudioInfo
+			  	.then(result => console.log(result));
+			  	// .then(console.log("...do nothing"));
+
+				///////////////////////
+			  // function multiply(num) {
+			  // 	return num * 2;
+			  // }
+
+			  // let testFunction = multiply(4);
+			  // console.log(testFunction);
+				///////////////////////
+
+			}); // onlyResultsWVidsPromises: end of .map function
+
+//////////////////////////////////
+
+			// console.log(onlyResultsWVidsPromises);
+
+			// Promise.all(onlyResultsWVidsPromises)
+			// 	.then(responses => {
+			// 		// console.log(responses);
+			// 	});
 
 	/////////////////////////////
 

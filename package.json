@@ -14,7 +14,8 @@
   "dependencies": {
     "decompress": "^4.2.0",
     "fluent-ffmpeg": "^2.1.2",
-    "npm": "^6.2.0",
+    "node-fetch": "^2.2.0",
+    "npm": "^6.4.0",
     "xml-js": "^1.6.7"
   }
 }
