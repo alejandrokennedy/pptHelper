@@ -53,315 +53,147 @@ fs.copyFile(target, copy, (err) => {
 
 function locateVideos(PPTFolder) {
 
-		var absolutePathOfPPTFolder = path.join(__dirname, PPTFolder);
+	var absolutePathOfPPTFolder = path.join(__dirname, PPTFolder);
 
-		var slidesRelsFolder = path.join(absolutePathOfPPTFolder, 'ppt', 'slides', '_rels');
+	var slidesRelsFolder = path.join(absolutePathOfPPTFolder, 'ppt', 'slides', '_rels');
 
-		console.log("======================");
+	console.log("======================");
 
-		fs.readdir(slidesRelsFolder, (err, entries) => {
+	fs.readdir(slidesRelsFolder, (err, entries) => {
 
-			// create array of objects. Each object has "slide", "hasVideo", "vidLocation", and (possibly) vidLocation2 properties.
-			var resultsList = entries.map(x => {
+		// create array of objects. Each object has "slide", "hasVideo", "vidLocation", and (possibly) vidLocation2 properties.
+		var resultsList = entries.map(x => {
 
-				var obj = {};
+			var obj = {};
 
-				// add slide number property to object
-				obj.slide = parseInt(x.split(".").shift().split("slide").pop());
+			// add slide number property to object
+			obj.slide = parseInt(x.split(".").shift().split("slide").pop());
 
-				// location of rels file
-				var relsFile = path.join(slidesRelsFolder, x);
+			// location of rels file
+			var relsFile = path.join(slidesRelsFolder, x);
 
-				// read relsFile contents in string form
-				var fileGuts = fs.readFileSync(relsFile, 'utf8', (err, data) => {
-					if (err) throw err;
-					return data;
-				});
-
-				// add hasVideo (and vidLocation, if applicable) property to object. If no vid, hasVid is false.
-				if (fileGuts.indexOf('relationships/video"') >= 0) {
-					obj.hasVideo = true
-
-					// convert XML to JSON. JSON is a string at this point
-					var fileGutsJSONString = convert.xml2json(fileGuts, {compact: false, spaces: 4});
-
-					// de-stringify, making it a proper JSON object
-					var fileGutsJSON = JSON.parse(fileGutsJSONString);
-
-					// array of all slide relationship properties (equivalent of original XML properties)
-					var relArray = fileGutsJSON.elements[0].elements;
-
-					// returns array of video locations. If a slide has no video, returns undefined
-					relTarget = relArray.map(relationship => {
-						if (relationship.attributes.Type.indexOf('video') >= 0) {
-							return relationship.attributes.Target;
-						}
-					});
-
-					// array of all video locations. Typically should be only one item in the array
-					var vidLocationArray = relTarget.filter(relTarget => relTarget != undefined);
-
-					// add vidLocation property to object
-					obj.vidLocation = vidLocationArray[0].toString();
-
-					// what to do with extra videos? Cross reference "slides" folder to find if there are two video tags?
-					// If second video, logs an alert to console and adds vidLocation2 property to obj
-					if (vidLocationArray[1] != undefined) {
-						console.log("\n Slide ", obj.slide, " has a second video at: ", vidLocationArray[1]);
-					obj.vidLocation2 = vidLocationArray[1].toString();
-					}
-
-					// test this
-					// if 3rd video, logs warning to console
-					if (vidLocationArray[2] != undefined) {
-						console.log ("\n There are three or more videos in slide ", obj.slide, "!")
-					}
-
-				} else {
-					obj.hasVideo = false
-				}
-
-				return obj;
-
+			// read relsFile contents in string form
+			var fileGuts = fs.readFileSync(relsFile, 'utf8', (err, data) => {
+				if (err) throw err;
+				return data;
 			});
 
-			// filtered results list: an array of objects, with slides that don't contain videos taken out
-			var onlyResultsWVids = resultsList.filter(obj => obj.hasVideo === true);
-			// console.log(onlyResultsWVids);
+			// add hasVideo (and vidLocation, if applicable) property to object. If no vid, hasVid is false.
+			if (fileGuts.indexOf('relationships/video"') >= 0) {
+				obj.hasVideo = true
 
-////////////////////////// working on promises with array
+				// convert XML to JSON. JSON is a string at this point
+				var fileGutsJSONString = convert.xml2json(fileGuts, {compact: false, spaces: 4});
 
-			// let names = ['iliakan', 'remy', 'jeresig'];
-    
-	  //   let requests = names.map(name => name + " was here");
-	    
-	  //   Promise.all(requests)
-	  //     .then(responses => {
-	  //         console.log(responses);
-	  //       });
+				// de-stringify, making it a proper JSON object
+				var fileGutsJSON = JSON.parse(fileGutsJSONString);
 
+				// array of all slide relationship properties (equivalent of original XML properties)
+				var relArray = fileGutsJSON.elements[0].elements;
 
-	  ///////////////
-
-			// let experimentalArray = onlyResultsWVids.map(x => {
-
-			// 	function trying (x) {
-
-			// 		return new Promise((resolve, reject) => {
-			// 			x.test = 'test';
-			// 			resolve(x);
-			// 		});
-			// 	}
-
-			// 	trying(x)
-			// 		// .then((x) => return x)
-			// 		.then((x) => console.log("success! \n", x))
-			// 		.catch((err) => console.error(err));
-
-			// });
-
-			// Promise.all(experimentalArray)
-			// 	.then(responses => {
-			// 		// console.log(responses);
-			// 		console.log('this string');
-			// 	});
-
-	  ///////////////
-
-	  // function transformAndDeliverArray (array) {
-	  // 	return new Promise((resolve, reject) => {
-
-	  // 		// let newArray = array.map(array => {
-	  // 			setTimeout(() => {
-			//   		array.map(array => {
-			//   			array.test = 'super good test'
-			//   			array.test2 = 'super good test2'
-			//   		});
-	  // 				console.log("wait is over")
-	  // 			}, 2000)
-
-	  // 		// resolve(newArray);
-	  // 		resolve(array);
-
-	  // 	});
-	  // }
-
-	  // transformAndDeliverArray(onlyResultsWVids)
-	  // 	.then((result) => console.log(result));
-
-//////////////////////////
-
-	  // function transformAndDeliverArray (array) {
-	  // 	return new Promise((resolve, reject) => {
-
-	  // 		// let newArray = array.map(array => {
-	  // 			setTimeout(() => {
-			//   		array.map(array => {
-			//   			array.test = 'super good test'
-			//   			array.test2 = 'super good test2'
-			//   		});
-	  // 				console.log("2 second wait is over")
-	  // 			}, 2000)
-
-	  // 		// resolve(newArray);
-	  // 		resolve(array);
-
-	  // 	});
-	  // }
-
-	  // transformAndDeliverArray(onlyResultsWVids)
-	  // 	.then((result) => console.log(result));
-	  // 	// .then((result) => {
-	  // 	// 	result.map(array => {
-	  // 	// 		array.test = 'super good test'
-	  // 	// 		array.test2 = 'super good test2'
-	  // 	// 	})
-	  // 	// })
-
-////////////////////////// async/await playground
-
-		// let apiUrl = "https://gist.githubusercontent.com/mbostock/ddc6d50c313ebe6edb45519f43358c6c/raw/c443ed14c34c5c1b544949a546dd9d0acd05bad3/temperatures.csv";
-
-		// function passPromise(thingHere) {
-		// 	// console.log("\n \n check this: \n");
-		// 	// console.log(thingHere);
-		// 	return new Promise((resolve, reject) => {
-		// 		resolve(thingHere);
-
-		// 	})
-		// }
-
-		// fetchApi()
-		// 	.then(results => console.log(results))
-		// 	// .catch(err => console.error("\n Yo! This is an ERROR, boiiii !!! \n"));
-		// 	.catch(err => console.error(err));
-
-		// async function fetchApi() {
-		// 	let fetchingApi = await fetch(apiUrl);
-		// 	// let consoleLogPromise = await passPromise(fetchingApi);
-		// 	let consoleLogPromise = await Promise.resolve(fetchingApi);
-		// 	let typeOfThing = await typeof consoleLogPromise;
-		// 	// let typeOfThing = await console.log("\n typeOfThing is a(n): \n", typeof consoleLogPromise);
-		// 	return {
-		// 		originalObject: consoleLogPromise,
-		// 		theTypeIs: typeOfThing
-		// 	}
-
-
-
-			// fetch(apiUrl)
-			// 	.then(response => {
-			// 		console.log(response)
-			// 		return new Promise((resolve, reject) => {
-			// 			resolve(response);
-			// 		})
-			// 	})
-			// 	.then(newResponse => console.log("\n newResponse is a(n): \n", typeof newResponse));
-			// 	.catch((err) => console.error("\n Yo! This is an ERROR, boiiii !!! \n"));
-		// }
-
-		// fetchApi();
-
-//////////////////////////
-
-			var onlyResultsWVidsPromises = onlyResultsWVids.map(x => {
-				// use this concept somehow: 
-				// const VOLUME_THRESHOLD = -50; // volume threshold
-
-				let vidFile = path.join(slidesRelsFolder, "..", x.vidLocation);
-				var promiseResolve = 'placeholder';
-
-				function getMeanVolume(videoFile, callback) {
-					new Ffmpeg({ source: videoFile })
-				  	.withAudioFilter('volumedetect')
-						.addOption('-f', 'null')
-						.addOption('-t', '500')
-						.on('error', function(err, stdout, stderr) {
-	  					console.log('An error occurred: ' + err.message);
-							})
-						.on('start', function(ffmpegCommand) {
-							// console.log('\n the following ffmpeg command is being run:\n', ffmpegCommand, "\n");
-						})
-						.on('end', function(stdout, stderr) {
-					   
-					    let meanVolumeRegex = stderr.match(/mean_volume:\s+(-?\d+(\.\d+)?)/);
-					    let maxVolumeRegex = stderr.match(/max_volume:\s+(-?\d+(\.\d+)?)/);
-					   
-					    // return the mean and max volumes as arguments for callback function
-					    if(meanVolumeRegex && maxVolumeRegex){
-					      let meanVolume = parseFloat(meanVolumeRegex[1]);
-					      let maxVolume = parseFloat(maxVolumeRegex[1]);
-					      return callback(meanVolume, maxVolume);
-					    } else {
-					    	// console.log("\nmeanVolumeRegex and maxVolumeRegex do not exist. Callback will be set to false\n")
-					      return callback(false);
-					    }
-				 		})
-					 	.saveToFile('/dev/null');
-
-				 	return new Promise((resolve, reject) => {
-				 			resolve(promiseResolve);
-				 	});
-				}
-
-				let arrayWithAudioInfo = getMeanVolume(vidFile, function(meanVolume, maxVolume) {
-
-					x.meanVolume = meanVolume;
-					x.maxVolume = maxVolume;
-				  // console.log(x);
-				  promiseResolve = Promise.resolve(x);
-				  console.log(promiseResolve);
-
+				// returns array of video locations. If a slide has no video, returns undefined
+				relTarget = relArray.map(relationship => {
+					if (relationship.attributes.Type.indexOf('video') >= 0) {
+						return relationship.attributes.Target;
+					}
 				});
 
-				  // console.log(Promise.resolve(x));
-				  
-			  // console.log(arrayWithAudioInfo);
-			  arrayWithAudioInfo
-			  	.then(result => console.log(result));
-			  	// .then(console.log("...do nothing"));
+				// array of all video locations. Typically should be only one item in the array
+				var vidLocationArray = relTarget.filter(relTarget => relTarget != undefined);
 
-				///////////////////////
-			  // function multiply(num) {
-			  // 	return num * 2;
-			  // }
+				// add vidLocation property to object
+				obj.vidLocation = vidLocationArray[0].toString();
 
-			  // let testFunction = multiply(4);
-			  // console.log(testFunction);
-				///////////////////////
+				// what to do with extra videos? Cross reference "slides" folder to find if there are two video tags?
+				// If second video, logs an alert to console and adds vidLocation2 property to obj
+				if (vidLocationArray[1] != undefined) {
+					console.log("\n Slide ", obj.slide, " has a second video at: ", vidLocationArray[1]);
+				obj.vidLocation2 = vidLocationArray[1].toString();
+				}
 
-			}); // onlyResultsWVidsPromises: end of .map function
+				// test this
+				// if 3rd video, logs warning to console
+				if (vidLocationArray[2] != undefined) {
+					console.log ("\n There are three or more videos in slide ", obj.slide, "!")
+				}
 
-//////////////////////////////////
+			} else {
+				obj.hasVideo = false
+			}
 
-			// console.log(onlyResultsWVidsPromises);
+			return obj;
 
-			// Promise.all(onlyResultsWVidsPromises)
-			// 	.then(responses => {
-			// 		// console.log(responses);
-			// 	});
+		});
 
-	/////////////////////////////
+		// filtered results list: an array of objects, with slides that don't contain videos taken out
+		var onlyResultsWVids = resultsList.filter(obj => obj.hasVideo === true);
 
-			// figure out asynchronous coding
-			// fix for singular
-			// Log how many slides have videos
-			// console.log("\n", arrayWithVidInfo.length + " slides contain videos:", "\n");
-			
-///////////////////////////// below is an old method of logging sorted results...
+//////////////////////////
 
-			// function logResults () {
+		function getMeanVolume(videoFile) {
+		 	return new Promise((resolve, reject) => {
+				new Ffmpeg({ source: videoFile })
+			  	.withAudioFilter('volumedetect')
+					.addOption('-f', 'null')
+					.addOption('-t', '500')
+					.on('error', function(err, stdout, stderr) {
+						console.log('An error occurred: ' + err.message);
+						})
+					.on('start', function(ffmpegCommand) {
+						// console.log('\n the following ffmpeg command is being run:\n', ffmpegCommand, "\n");
+					})
+					.on('end', function(stdout, stderr) {
+				    let meanVolumeRegex = stderr.match(/mean_volume:\s+(-?\d+(\.\d+)?)/);
+				    let maxVolumeRegex = stderr.match(/max_volume:\s+(-?\d+(\.\d+)?)/);
+				    // return the mean and max volumes as arguments for callback function
+				    if(meanVolumeRegex && maxVolumeRegex){
+				      let meanVolume = parseFloat(meanVolumeRegex[1]);
+				      let maxVolume = parseFloat(maxVolumeRegex[1]);
+				      return resolve([meanVolume, maxVolume]);
+				    } else {
+				    	// console.log("\nmeanVolumeRegex and maxVolumeRegex do not exist. Callback will be set to false\n")
+				      return resolve(false);
+				    }
+			 		})
+				 	.saveToFile('/dev/null');
+		 	});
+		}
 
-			// 	resultsList.sort(function(a, b) {
-			// 	 return b.hasVideo - a.hasVideo || a.hasVidPlusRepeatCountIndefinite - b.hasVidPlusRepeatCountIndefinite || a.slide - b.slide;					
-			// 	})
+		var onlyResultsWVidsPromises = onlyResultsWVids.map(x => {
+			let vidFile = path.join(slidesRelsFolder, "..", x.vidLocation);
 
-			// 	console.log(resultsList);
-			// }
+			return getMeanVolume(vidFile)
+				.then((audioInfoArray) => {
+					x.meanVolume = audioInfoArray[0];
+					x.maxVolume = audioInfoArray[1];
+					return x;
+				});
+		});
+
+		Promise.all(onlyResultsWVidsPromises)
+			// .then((res) => console.log(res));
+			.then((res) => logResults(res));
 
 /////////////////////////////
 
-		}); // fs.readdir callback
+		// fix for singular
+		// Log how many slides have videos
+		// console.log("\n", arrayWithVidInfo.length + " slides contain videos:", "\n");
+		
+///////////////////////////// below is an old method of logging sorted results...
+
+		function logResults(resultsList) {
+
+			resultsList.sort(function(a, b) {
+			 return a.slide - b.slide || b.hasVideo - a.hasVideo;					
+			})
+
+			console.log(resultsList);
+		}
+
+/////////////////////////////
+
+	}); // fs.readdir callback
 
 } // locateVideos function callback
 
