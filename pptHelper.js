@@ -165,7 +165,9 @@ function locateVideos(PPTFolder) {
 			return getMeanVolume(vidFile)
 				.then((audioInfoArray) => {
 					x.meanVolume = audioInfoArray[0];
+					x.meanGraph = "-".repeat(91 + audioInfoArray[0])
 					x.maxVolume = audioInfoArray[1];
+					x.maxGraph = "-".repeat(91 + audioInfoArray[1])
 					return x;
 				});
 		});
