@@ -18,10 +18,7 @@ var pptHelperDir = "/pptHelperDir";
 
 /////////////////////////
 
-// work through this tutorial before trying to work in a folder besides the project's root folder:
-// http://www.monitis.com/blog/6-node-js-recipes-working-with-the-file-system/
-
-// console.log(copy);
+// tutorial for working outside project's root folder: http://www.monitis.com/blog/6-node-js-recipes-working-with-the-file-system/
 
 // // uncomment after getting extraneous files to be created here
 // fs.mkdirSync("pptHelperDir", function(err) {
@@ -172,19 +169,11 @@ function locateVideos(PPTFolder) {
 		});
 
 		Promise.all(onlyResultsWVidsPromises)
-			// .then((res) => console.log(res));
 			.then((res) => logResults(res))
-			.then((res) => {
-
-				// fs.unlink(PPTFolder, function(error) {
-				// 	if (error) throw error;
-				// console.log('\n Deleted ', PPTFolder, "\n All Done! \n");
-				// });
-
+			.then(() => {
 				del([PPTFolder, copy]).then(paths => {
 					console.log('Deleted files and folders:\n', paths.join('\n'));
 				});
-
 			});
 
 /////////////////////////////
@@ -202,19 +191,6 @@ function locateVideos(PPTFolder) {
 			})
 
 			console.log(finalResultsList);
-
-			// console.log("\n", copy);
-			// console.log("\n", PPTFolder);
-
-			// fs.unlink(copy, function(error) {
-			// 	if (error) throw error;
-			// console.log('\n Deleted ', copy);
-			// });
-
-			// fs.unlink(PPTFolder, function(error) {
-			// 	if (error) throw error;
-			// console.log('\n Deleted ', PPTFolder, "\n All Done! \n");
-			// });
 		}
 
 /////////////////////////////
