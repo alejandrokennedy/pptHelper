@@ -6,6 +6,7 @@ const convert = require('xml-js');
 const util = require('util');
 const path = require('path');
 const Ffmpeg = require('fluent-ffmpeg');
+const del = require('del');
 
 // remove once done playing
 const fetch = require('node-fetch');
@@ -36,8 +37,7 @@ var pptHelperDir = "/pptHelperDir";
 // Make zip file
 fs.copyFile(target, copy, (err) => {
 	if (err) throw err;
-	console.log("======================");
-	console.log(target, "\n ...was copied to... \n", copy);
+	console.log("\n", target, "\n ...was copied to... \n", copy, "\n");
 
 	// Unzip file
 	decompress(copy, copy.split('.').shift()).then((files, err) => {
@@ -46,18 +46,17 @@ fs.copyFile(target, copy, (err) => {
 		PPTFolder = copy.split('.').shift();
 		console.log("\n", copy, "\n ...was unzipped to create... \n", PPTFolder);
 		locateVideos(PPTFolder);
-
 	});
-
 });
 
 function locateVideos(PPTFolder) {
 
-	var absolutePathOfPPTFolder = path.join(__dirname, PPTFolder);
+	// var absolutePathOfPPTFolder = path.join(__dirname, PPTFolder);
+	var absolutePathOfPPTFolder = PPTFolder;
 
 	var slidesRelsFolder = path.join(absolutePathOfPPTFolder, 'ppt', 'slides', '_rels');
 
-	console.log("======================");
+	console.log("\n======================\n");
 
 	fs.readdir(slidesRelsFolder, (err, entries) => {
 
@@ -174,7 +173,19 @@ function locateVideos(PPTFolder) {
 
 		Promise.all(onlyResultsWVidsPromises)
 			// .then((res) => console.log(res));
-			.then((res) => logResults(res));
+			.then((res) => logResults(res))
+			.then((res) => {
+
+				// fs.unlink(PPTFolder, function(error) {
+				// 	if (error) throw error;
+				// console.log('\n Deleted ', PPTFolder, "\n All Done! \n");
+				// });
+
+				del([PPTFolder, copy]).then(paths => {
+					console.log('Deleted files and folders:\n', paths.join('\n'));
+				});
+
+			});
 
 /////////////////////////////
 
@@ -184,13 +195,26 @@ function locateVideos(PPTFolder) {
 		
 ///////////////////////////// below is an old method of logging sorted results...
 
-		function logResults(resultsList) {
+		function logResults(finalResultsList) {
 
-			resultsList.sort(function(a, b) {
+			finalResultsList.sort(function(a, b) {
 			 return a.slide - b.slide || b.hasVideo - a.hasVideo;					
 			})
 
-			console.log(resultsList);
+			console.log(finalResultsList);
+
+			// console.log("\n", copy);
+			// console.log("\n", PPTFolder);
+
+			// fs.unlink(copy, function(error) {
+			// 	if (error) throw error;
+			// console.log('\n Deleted ', copy);
+			// });
+
+			// fs.unlink(PPTFolder, function(error) {
+			// 	if (error) throw error;
+			// console.log('\n Deleted ', PPTFolder, "\n All Done! \n");
+			// });
 		}
 
 /////////////////////////////
