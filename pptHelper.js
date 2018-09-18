@@ -34,14 +34,14 @@ var pptHelperDir = "/pptHelperDir";
 // Make zip file
 fs.copyFile(target, copy, (err) => {
 	if (err) throw err;
-	console.log("\n", target, "\n ...was copied to... \n", copy, "\n");
+	console.log("\n", target, "\n ...was copied to...\n", copy, "\n");
 
 	// Unzip file
 	decompress(copy, copy.split('.').shift()).then((files, err) => {
 		// check to make sure decompress module has this error reporting capability
 		if (err) throw err;
 		PPTFolder = copy.split('.').shift();
-		console.log("\n", copy, "\n ...was unzipped to create... \n", PPTFolder);
+		console.log(copy, "\n ...was unzipped to create...\n", PPTFolder);
 		locateVideos(PPTFolder);
 	});
 });
@@ -172,7 +172,7 @@ function locateVideos(PPTFolder) {
 			.then((res) => logResults(res))
 			.then(() => {
 				del([PPTFolder, copy], { force: true }).then(paths => {
-					console.log('Deleted files and folders:\n', paths.join('\n'));
+					console.log('\nDeleted files and folders:\n', paths.join(), '\n');
 				});
 			});
 
