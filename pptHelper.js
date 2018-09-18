@@ -171,7 +171,7 @@ function locateVideos(PPTFolder) {
 		Promise.all(onlyResultsWVidsPromises)
 			.then((res) => logResults(res))
 			.then(() => {
-				del([PPTFolder, copy]).then(paths => {
+				del([PPTFolder, copy], { force: true }).then(paths => {
 					console.log('Deleted files and folders:\n', paths.join('\n'));
 				});
 			});
